@@ -1,0 +1,30 @@
+{
+  "id": "Mã số bệnh nhân",
+  "age": "Tuổi bệnh nhân",
+  "sex": "Giới tính (Male/Female)",
+  "trestbps": "Huyết áp nghỉ (mmHg)",
+  "chol": "Nồng độ cholesterol (mg/dl)",
+  "fbs": "Đường huyết lúc đói > 120 mg/dl (True/False)",
+  "thalch": "Nhịp tim tối đa đạt được khi gắng sức",
+  "exang": "Đau thắt ngực khi gắng sức (True/False)",
+  "oldpeak": "Độ chênh ST trên điện tâm đồ khi gắng sức",
+
+  "ca_missing": "1 nếu dữ liệu về số lượng mạch vành bị thiếu, 0 nếu có",
+  "thal_missing": "1 nếu dữ liệu về thalium stress test bị thiếu, 0 nếu có",
+
+  "cp_atypical angina": "1 nếu bệnh nhân có đau thắt ngực không điển hình, 0 nếu không",
+  "cp_non-anginal": "1 nếu bệnh nhân có đau ngực không do tim, 0 nếu không",
+  "cp_typical angina": "1 nếu bệnh nhân có đau thắt ngực điển hình, 0 nếu không",
+
+  "restecg_normal": "1 nếu điện tâm đồ nghỉ bình thường, 0 nếu không",
+  "restecg_st-t abnormality": "1 nếu điện tâm đồ có bất thường ST-T, 0 nếu không",
+
+  "slope_flat": "1 nếu đoạn ST phẳng, 0 nếu không",
+  "slope_upsloping": "1 nếu đoạn ST lên dốc, 0 nếu không",
+
+  "dataset_Hungary": "1 nếu bệnh nhân thuộc dataset Hungary, 0 nếu không",
+  "dataset_Switzerland": "1 nếu bệnh nhân thuộc dataset Switzerland, 0 nếu không",
+  "dataset_VA Long Beach": "1 nếu bệnh nhân thuộc dataset VA Long Beach, 0 nếu không",
+
+  "target": "Nhãn dự đoán bệnh tim (0 = không bệnh, 1 = có bệnh)"
+}

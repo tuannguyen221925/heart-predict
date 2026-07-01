@@ -1,0 +1,18 @@
+{
+    "id": "mã_bệnh_nhân",
+    "age": "tuổi",
+    "sex": "giới_tính",
+    "dataset": "tập_dữ_liệu",
+    "cp": "loại_đau_ngực",
+    "trestbps": "huyết_áp_nghỉ",
+    "chol": "cholesterol",
+    "fbs": "đường_huyết_cao",
+    "restecg": "điện_tâm_đồ",
+    "thalch": "nhịp_tim_tối_đa",
+    "exang": "đau_thắt_ngực",
+    "oldpeak": "ST_chênh_lệch",
+    "slope": "độ_dốc",
+    "ca": "số_mạch_vành",
+    "thal": "thal",
+    "num": "bệnh_tim"
+}

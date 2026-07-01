@@ -1,0 +1,25 @@
+# Node.js
+node_modules/
+
+# Next.js build
+.next/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Jupyter Notebook checkpoints
+*.ipynb_checkpoints/
+
+# Env & config
+.env
+*.log
+
+#backup files
+
+# OS-specific
+.DS_Store
+Thumbs.db
