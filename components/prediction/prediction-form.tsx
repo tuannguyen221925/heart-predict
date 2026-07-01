@@ -159,7 +159,7 @@ export default function PredictionForm({ userId }: PredictionFormProps) {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentToken}` // Trả lại viết hoa chữ A theo chuẩn OAuth2
+          "Authorization": `Bearer ${currentToken}`
         },
         body: JSON.stringify(payload),
       });

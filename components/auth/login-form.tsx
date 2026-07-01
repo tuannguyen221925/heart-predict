@@ -39,6 +39,14 @@ export function LoginForm() {
         return;
       }
 
+      // Lưu token vào localStorage nếu có trong response (cho phép prediction-form truy cập)
+      if (data.access_token) {
+        localStorage.setItem("token", data.access_token);
+      }
+      if (data.email) {
+        localStorage.setItem("email", data.email);
+      }
+
       router.push("/predict");
       router.refresh();
     } catch {
