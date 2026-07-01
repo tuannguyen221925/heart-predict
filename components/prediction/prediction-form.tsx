@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Heart, AlertTriangle, CheckCircle, Save, RotateCcw } from "lucide-react";
+import { Loader2, Heart, AlertTriangle, CheckCircle, Save, RotateCcw, Activity, Gauge, TrendingUp } from "lucide-react";
 import { API_ENDPOINTS } from "@/lib/api-config";
 
 interface PredictionFormProps {
@@ -58,6 +58,62 @@ const getAuthToken = () => {
 
   return null;
 };
+
+// Circular Progress Component
+function CircularProgress({ percentage, risk_level, label }: { percentage: number; risk_level: string; label: string }) {
+  const circumference = 2 * Math.PI * 45;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  
+  const getRiskColor = () => {
+    if (percentage < 30) return { bg: "from-emerald-500 to-teal-500", text: "text-emerald-600", ring: "ring-emerald-200" };
+    if (percentage < 60) return { bg: "from-amber-500 to-orange-500", text: "text-amber-600", ring: "ring-amber-200" };
+    return { bg: "from-red-500 to-rose-500", text: "text-red-600", ring: "ring-red-200" };
+  };
+
+  const colors = getRiskColor();
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className={`relative w-32 h-32 rounded-full ring-8 ${colors.ring} bg-gradient-to-br ${colors.bg} p-1`}>
+        <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center relative">
+          <svg className="absolute w-32 h-32 transform -rotate-90">
+            <circle
+              cx="64"
+              cy="64"
+              r="45"
+              stroke="currentColor"
+              strokeWidth="3"
+              fill="none"
+              className="text-gray-200 dark:text-gray-700"
+            />
+            <circle
+              cx="64"
+              cy="64"
+              r="45"
+              stroke="currentColor"
+              strokeWidth="3"
+              fill="none"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              className={`text-transparent bg-gradient-to-r ${colors.bg} bg-clip-text transition-all duration-1000`}
+              style={{
+                background: `conic-gradient(from 0deg, ${colors.bg.split(' ')[1]} 0deg, ${colors.bg.split(' ')[3]} ${percentage * 3.6}deg, #e5e7eb ${percentage * 3.6}deg)`,
+              }}
+            />
+          </svg>
+          <div className="text-center z-10">
+            <div className={`text-3xl font-bold ${colors.text}`}>{percentage.toFixed(0)}%</div>
+            <div className="text-xs font-semibold text-gray-500 uppercase mt-1">Risk</div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 text-center">
+        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{label}</p>
+        <p className={`text-xs font-bold uppercase mt-1 ${colors.text}`}>{risk_level}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function PredictionForm({ userId }: PredictionFormProps) {
   const { t } = useLanguage();
@@ -169,179 +225,302 @@ export default function PredictionForm({ userId }: PredictionFormProps) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Khung nhập liệu (Cột trái - chiếm 2 phần) */}
-        <div className="md:col-span-2">
-          <Card className="shadow-md">
-            <CardHeader className="bg-muted/30">
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-primary" />
-                Dự đoán nguy cơ bệnh tim
-              </CardTitle>
-              <CardDescription>Nhập đầy đủ các chỉ số lâm sàng để mô hình Deep Learning phân tích mức độ nguy cơ.</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                
-                <div className="space-y-2">
-                  <Label htmlFor="name_prediction">Tên đợt chẩn đoán (Tùy chọn)</Label>
-                  <Input
-                    id="name_prediction"
-                    value={formData.name_prediction}
-                    onChange={handleChange}
-                    placeholder="Ví dụ: Kiểm tra sức khỏe định kỳ tháng 6"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="age">Tuổi *</Label>
-                    <Input id="age" type="number" min="1" required value={formData.age} onChange={handleChange} placeholder="VD: 55" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sex">Giới tính</Label>
-                    <select id="sex" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={formData.sex} onChange={handleChange}>
-                      <option value="1">Nam</option>
-                      <option value="0">Nữ</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="height">Chiều cao (cm) *</Label>
-                    <Input id="height" type="number" min="50" required value={formData.height} onChange={handleChange} placeholder="VD: 170" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="weight">Cân nặng (kg) *</Label>
-                    <Input id="weight" type="number" min="10" required value={formData.weight} onChange={handleChange} placeholder="VD: 65" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="trestbps">Huyết áp tâm thu (mmHg) *</Label>
-                    <Input id="trestbps" type="number" min="50" required value={formData.trestbps} onChange={handleChange} placeholder="VD: 140" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="chol">Cholesterol (mg/dl) *</Label>
-                    <Input id="chol" type="number" min="100" required value={formData.chol} onChange={handleChange} placeholder="VD: 240" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="thalch">Nhịp tim tối đa *</Label>
-                    <Input id="thalch" type="number" min="60" required value={formData.thalch} onChange={handleChange} placeholder="VD: 150" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="oldpeak">Độ trầm cảm ST (Oldpeak) *</Label>
-                    <Input id="oldpeak" type="number" step="0.1" required value={formData.oldpeak} onChange={handleChange} placeholder="VD: 1.5" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="cp">Loại đau ngực</Label>
-                    <select id="cp" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={formData.cp} onChange={handleChange}>
-                      <option value="typical angina">Đau thắt ngực điển hình</option>
-                      <option value="atypical angina">Đau ngực không điển hình</option>
-                      <option value="non-anginal">Đau ngực không do tim</option>
-                      <option value="asymptomatic">Không có triệu chứng</option>
-                    </select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="fbs">Đường huyết lúc đói &gt; 120 mg/dl</Label>
-                    <select id="fbs" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={formData.fbs} onChange={handleChange}>
-                      <option value="0">Không</option>
-                      <option value="1">Có</option>
-                    </select>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20">
-                    <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                    <span className="font-medium">{error}</span>
-                  </div>
-                )}
-
-                <div className="flex gap-4 pt-2">
-                  <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700 text-white" disabled={isLoading}>
-                    {isLoading ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang phân tích dữ liệu...</>
-                    ) : (
-                      <><Heart className="mr-2 h-4 w-4" /> Bắt đầu dự đoán</>
-                    )}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={handleReset} className="w-12 px-0">
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 py-8 px-4">
+      <div className="container mx-auto max-w-7xl">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl">
+              <Heart className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 dark:from-rose-400 dark:to-pink-400 bg-clip-text text-transparent">
+              CardioPredic AI
+            </h1>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">Advanced Heart Disease Risk Assessment</p>
         </div>
 
-        {/* Khung kết quả (Cột phải - chiếm 1 phần) */}
-        <div>
-          <Card className="h-full sticky top-6 shadow-md">
-            <CardHeader className="bg-muted/30">
-              <CardTitle>Báo cáo lâm sàng</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {result ? (
-                <div className="space-y-6 animate-in fade-in zoom-in duration-300">
-                  <div className={`rounded-xl border p-5 text-center ${result.prediction === 1 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
-                    <div className="text-sm font-medium text-muted-foreground mb-1">Mô hình AI dự đoán</div>
-                    <div className={`text-4xl font-extrabold ${result.prediction === 1 ? 'text-red-600' : 'text-green-600'}`}>
-                      {(result.ai_prediction.probability * 100).toFixed(1)}%
-                    </div>
-                    <div className="text-sm font-bold mt-2 uppercase tracking-wide">
-                      Mức độ: {result.ai_prediction.risk_level}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-                      {result.ai_prediction.message}
-                    </p>
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Left Column: Form */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-xl border-0 backdrop-blur-sm bg-white/95 dark:bg-slate-900/95">
+              <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-rose-500 to-pink-500 rounded-lg">
+                    <Activity className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl">Thông tin bệnh nhân</CardTitle>
+                    <CardDescription>Nhập đầy đủ các chỉ số lâm sàng để AI phân tích mức độ nguy cơ</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="pt-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Diagnosis Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="name_prediction" className="text-sm font-semibold">Tên đợt chẩn đoán (Tùy chọn)</Label>
+                    <Input
+                      id="name_prediction"
+                      value={formData.name_prediction}
+                      onChange={handleChange}
+                      placeholder="Ví dụ: Kiểm tra định kỳ tháng 6"
+                      className="border-gray-200 dark:border-gray-700 focus:ring-rose-500"
+                    />
                   </div>
 
-                  <div className="space-y-3 bg-muted/30 p-4 rounded-xl border">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Đánh giá lâm sàng</span>
-                      <span className="font-semibold">{((result.clinical_evaluation?.probability || 0) * 100).toFixed(1)}%</span>
+                  {/* Section 1: Thông tin cá nhân */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                      <div className="w-1 h-6 bg-gradient-to-b from-rose-500 to-pink-500 rounded-full" />
+                      Thông tin cá nhân
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="age" className="text-sm font-medium">Tuổi *</Label>
+                        <Input id="age" type="number" min="1" required value={formData.age} onChange={handleChange} placeholder="55" className="border-gray-200 dark:border-gray-700" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="sex" className="text-sm font-medium">Giới tính</Label>
+                        <select id="sex" className="flex h-10 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent" value={formData.sex} onChange={handleChange}>
+                          <option value="1">Nam</option>
+                          <option value="0">Nữ</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="height" className="text-sm font-medium">Chiều cao (cm) *</Label>
+                        <Input id="height" type="number" min="50" required value={formData.height} onChange={handleChange} placeholder="170" className="border-gray-200 dark:border-gray-700" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="weight" className="text-sm font-medium">Cân nặng (kg) *</Label>
+                        <Input id="weight" type="number" min="10" required value={formData.weight} onChange={handleChange} placeholder="65" className="border-gray-200 dark:border-gray-700" />
+                      </div>
                     </div>
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-1000 bg-blue-500" style={{ width: `${(result.clinical_evaluation?.probability || 0) * 100}%` }} />
+                  </div>
+
+                  {/* Section 2: Các chỉ số sinh tồn */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                      <div className="w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full" />
+                      Các chỉ số sinh tồn
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="trestbps" className="text-sm font-medium">Huyết áp tâm thu (mmHg) *</Label>
+                        <Input id="trestbps" type="number" min="50" required value={formData.trestbps} onChange={handleChange} placeholder="140" className="border-gray-200 dark:border-gray-700" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="chol" className="text-sm font-medium">Cholesterol (mg/dl) *</Label>
+                        <Input id="chol" type="number" min="100" required value={formData.chol} onChange={handleChange} placeholder="240" className="border-gray-200 dark:border-gray-700" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="thalch" className="text-sm font-medium">Nhịp tim tối đa *</Label>
+                        <Input id="thalch" type="number" min="60" required value={formData.thalch} onChange={handleChange} placeholder="150" className="border-gray-200 dark:border-gray-700" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="oldpeak" className="text-sm font-medium">Độ trầm cảm ST (Oldpeak) *</Label>
+                        <Input id="oldpeak" type="number" step="0.1" required value={formData.oldpeak} onChange={handleChange} placeholder="1.5" className="border-gray-200 dark:border-gray-700" />
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground italic mt-2">
-                      * {result.clinical_evaluation.message}
-                    </p>
-                    
+                  </div>
+
+                  {/* Section 3: Các thông số nâng cao */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                      <div className="w-1 h-6 bg-gradient-to-b from-teal-500 to-cyan-500 rounded-full" />
+                      Các thông số nâng cao
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="cp" className="text-sm font-medium">Loại đau ngực</Label>
+                        <select id="cp" className="flex h-10 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent" value={formData.cp} onChange={handleChange}>
+                          <option value="typical angina">Đau thắt ngực điển hình</option>
+                          <option value="atypical angina">Đau ngực không điển hình</option>
+                          <option value="non-anginal">Đau ngực không do tim</option>
+                          <option value="asymptomatic">Không có triệu chứng</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="fbs" className="text-sm font-medium">Đường huyết lúc đói &gt; 120</Label>
+                        <select id="fbs" className="flex h-10 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent" value={formData.fbs} onChange={handleChange}>
+                          <option value="0">Không</option>
+                          <option value="1">Có</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="restecg" className="text-sm font-medium">Điện tâm đồ lúc nghỉ</Label>
+                        <select id="restecg" className="flex h-10 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent" value={formData.restecg} onChange={handleChange}>
+                          <option value="normal">Bình thường</option>
+                          <option value="abnormal">Bất thường</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="exang" className="text-sm font-medium">Đau do vận động gây ra</Label>
+                        <select id="exang" className="flex h-10 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent" value={formData.exang} onChange={handleChange}>
+                          <option value="0">Không</option>
+                          <option value="1">Có</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="slope" className="text-sm font-medium">Độ dốc ST</Label>
+                        <select id="slope" className="flex h-10 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent" value={formData.slope} onChange={handleChange}>
+                          <option value="up">Lên</option>
+                          <option value="flat">Bằng</option>
+                          <option value="down">Xuống</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="ca" className="text-sm font-medium">Các động mạch chính</Label>
+                        <select id="ca" className="flex h-10 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent" value={formData.ca} onChange={handleChange}>
+                          <option value="0">0</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="thal" className="text-sm font-medium">Thalassemia</Label>
+                        <select id="thal" className="flex h-10 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent" value={formData.thal} onChange={handleChange}>
+                          <option value="normal">Bình thường</option>
+                          <option value="fixed">Cố định</option>
+                          <option value="reversible">Có thể đảo ngược</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Error Message */}
+                  {error && (
+                    <div className="flex items-start gap-3 rounded-lg bg-red-50 dark:bg-red-950/30 p-4 border border-red-200 dark:border-red-800">
+                      <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-red-800 dark:text-red-300 font-medium">{error}</span>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <Button 
+                      type="submit" 
+                      className="flex-1 h-11 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang phân tích...</>
+                      ) : (
+                        <><Gauge className="mr-2 h-5 w-5" /> Bắt đầu dự đoán</>
+                      )}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleReset} 
+                      className="px-4 h-11 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    >
+                      <RotateCcw className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: Results */}
+          <div className="lg:col-span-1">
+            <Card className="shadow-xl border-0 backdrop-blur-sm bg-white/95 dark:bg-slate-900/95 sticky top-8">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-white" />
+                  </div>
+                  <CardTitle>Đánh giá rủi ro</CardTitle>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="pt-8">
+                {result ? (
+                  <div className="space-y-8 animate-in fade-in zoom-in duration-500">
+                    {/* AI Prediction Gauge */}
+                    <div className="flex justify-center">
+                      <CircularProgress 
+                        percentage={result.ai_prediction.probability * 100} 
+                        risk_level={result.ai_prediction.risk_level}
+                        label="Dự đoán AI"
+                      />
+                    </div>
+
+                    {/* AI Message */}
+                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        <span className="font-semibold text-blue-900 dark:text-blue-300">Phân tích AI:</span> {result.ai_prediction.message}
+                      </p>
+                    </div>
+
+                    {/* Clinical Evaluation */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-teal-600" />
+                        Đánh giá lâm sàng
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Điểm đánh giá</span>
+                          <span className="text-sm font-bold text-gray-800 dark:text-gray-100">{((result.clinical_evaluation?.probability || 0) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-1000 shadow-lg shadow-current/20"
+                            style={{ width: `${(result.clinical_evaluation?.probability || 0) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 italic border-t pt-3">
+                        * {result.clinical_evaluation.message}
+                      </p>
+                    </div>
+
+                    {/* BMI Display */}
                     {result.bmi && (
-                      <div className="flex justify-between items-center pt-3 mt-3 border-t">
-                        <span className="text-sm text-muted-foreground">Chỉ số BMI</span>
-                        <span className="font-bold">{result.bmi.toFixed(1)}</span>
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Chỉ số BMI</span>
+                          <span className="text-2xl font-bold text-amber-700 dark:text-amber-300">{result.bmi.toFixed(1)}</span>
+                        </div>
                       </div>
                     )}
-                  </div>
 
-                  <Button
-                    className="w-full h-12 text-md transition-all"
-                    variant={saved ? "secondary" : "default"}
-                    onClick={handleSave}
-                    disabled={isSaving || saved}
-                  >
-                    {isSaving ? (
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    ) : saved ? (
-                      <CheckCircle className="mr-2 h-5 w-5 text-green-600" />
-                    ) : (
-                      <Save className="mr-2 h-5 w-5" />
-                    )}
-                    {saved ? "Đã lưu vào cơ sở dữ liệu" : "Lưu kết quả chẩn đoán"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground h-full text-center">
-                  <div className="p-4 bg-muted rounded-full mb-4">
-                    <Heart className="h-10 w-10 opacity-40" />
+                    {/* Save Button */}
+                    <Button
+                      className={`w-full h-12 font-semibold transition-all ${
+                        saved
+                          ? "bg-emerald-600 hover:bg-emerald-700"
+                          : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                      } text-white shadow-lg hover:shadow-xl`}
+                      onClick={handleSave}
+                      disabled={isSaving || saved}
+                    >
+                      {isSaving ? (
+                        <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang lưu...</>
+                      ) : saved ? (
+                        <><CheckCircle className="mr-2 h-5 w-5" /> Đã lưu</>
+                      ) : (
+                        <><Save className="mr-2 h-5 w-5" /> Lưu kết quả</>
+                      )}
+                    </Button>
                   </div>
-                  <p className="text-sm px-4">Hãy điền thông tin và nhấn nút Dự đoán để xem báo cáo tổng quan từ AI.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
+                    <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-full mb-4">
+                      <Heart className="h-12 w-12 opacity-50" />
+                    </div>
+                    <p className="text-sm text-center px-4 leading-relaxed">
+                      Điền thông tin bệnh nhân và nhấn <span className="font-semibold">"Bắt đầu dự đoán"</span> để xem kết quả.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
