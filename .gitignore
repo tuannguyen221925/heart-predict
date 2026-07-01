@@ -23,3 +23,7 @@ __pycache__/
 # OS-specific
 .DS_Store
 Thumbs.db
+
+replacements.txt
+.env
+kaggle.json
